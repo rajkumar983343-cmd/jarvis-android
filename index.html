@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>JARVIS · Personal AI Assistant</title>
+  <meta name="description" content="JARVIS is a personal assistant interface with voice input, voice replies, quick commands and an anime picker. Installable and works offline.">
+  <meta name="theme-color" content="#050a14">
+  <meta name="color-scheme" content="dark">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JARVIS">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-state="idle">
+
+  <!-- Icon sprite -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h0"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v6M14 10v6"/></symbol>
+    <symbol id="i-install" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-dice" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r=".8"/><circle cx="15" cy="9" r=".8"/><circle cx="9" cy="15" r=".8"/><circle cx="15" cy="15" r=".8"/></symbol>
+  </svg>
+
+  <div class="app" id="app">
+
+    <header class="top">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <h1>J.A.R.V.I.S</h1>
+          <p>Personal assistant interface</p>
+        </div>
+      </div>
+      <div class="clock" aria-label="Current time and date">
+        <time id="clock" datetime="">--:--:--</time>
+        <span id="date">Loading…</span>
+      </div>
+    </header>
+
+    <nav class="toolbar" aria-label="Tools">
+      <button type="button" class="tool" id="btn-anime"><svg class="ic" aria-hidden="true"><use href="#i-star"/></svg><span>Anime</span></button>
+      <button type="button" class="tool" id="btn-settings"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg><span>Settings</span></button>
+      <button type="button" class="tool" id="btn-clear"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg><span>Clear</span></button>
+      <button type="button" class="tool" id="btn-install"><svg class="ic" aria-hidden="true"><use href="#i-install"/></svg><span>Install</span></button>
+    </nav>
+
+    <section class="hud-strip" aria-label="System status">
+      <span class="chip" id="chip-voice-in" data-level="off"><span class="dot"></span><span class="chip-label">Voice in</span><span class="chip-value">…</span></span>
+      <span class="chip" id="chip-voice-out" data-level="off"><span class="dot"></span><span class="chip-label">Voice out</span><span class="chip-value">…</span></span>
+      <span class="chip" id="chip-net" data-level="off"><span class="dot"></span><span class="chip-label">Link</span><span class="chip-value">…</span></span>
+      <span class="chip" id="chip-ai" data-level="off"><span class="dot"></span><span class="chip-label">AI core</span><span class="chip-value">…</span></span>
+    </section>
+
+    <section class="core-section" aria-label="Assistant status">
+      <div class="core" id="core" data-state="idle" role="img" aria-label="JARVIS core – standby">
+        <span class="ripple"></span><span class="ripple"></span><span class="ripple"></span>
+        <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+          <defs>
+            <radialGradient id="orbGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+              <stop offset="0.35" stop-color="currentColor" stop-opacity="0.9"/>
+              <stop offset="1" stop-color="currentColor" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle class="halo" cx="100" cy="100" r="64" fill="url(#orbGrad)"/>
+          <g class="ring r1"><circle cx="100" cy="100" r="96" class="ticks"/></g>
+          <g class="ring r2"><circle cx="100" cy="100" r="88" class="arcs-a"/></g>
+          <g class="ring r3"><circle cx="100" cy="100" r="78" class="arcs-b"/></g>
+          <g class="ring r4"><circle cx="100" cy="100" r="66" class="dots"/></g>
+          <circle cx="100" cy="100" r="52" class="static-ring"/>
+          <g class="ring r5"><polygon points="100,58 136.4,79 136.4,121 100,142 63.6,121 63.6,79" class="hex"/></g>
+          <circle class="orb" cx="100" cy="100" r="26" fill="url(#orbGrad)"/>
+          <circle class="orb-core" cx="100" cy="100" r="9"/>
+        </svg>
+      </div>
+      <div class="status-row">
+        <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        <p class="status" id="status-text">STANDBY</p>
+        <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <p class="transcript" id="transcript" aria-live="polite"></p>
+    </section>
+
+    <main class="chat-wrap">
+      <div class="chat" id="log" role="log" aria-live="polite" aria-label="Conversation"></div>
+    </main>
+
+    <div class="shortcuts" role="group" aria-label="Quick commands">
+      <button type="button" class="shortcut" data-cmd="what time is it">Time</button>
+      <button type="button" class="shortcut" data-cmd="what is today's date">Date</button>
+      <button type="button" class="shortcut" data-cmd="open YouTube">YouTube</button>
+      <button type="button" class="shortcut" data-cmd="open Wikipedia">Wikipedia</button>
+      <button type="button" class="shortcut" data-cmd="random anime">Random anime</button>
+      <button type="button" class="shortcut" data-cmd="recommend anime">Recommend anime</button>
+      <button type="button" class="shortcut" data-cmd="sites">Sites</button>
+      <button type="button" class="shortcut" data-cmd="help">Help</button>
+    </div>
+
+    <form class="composer" id="composer" autocomplete="off" novalidate>
+      <button type="button" class="mic" id="mic-btn" aria-label="Start voice input" aria-pressed="false">
+        <svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg>
+      </button>
+      <input type="text" id="message-input" name="message" placeholder="Type a message or command…" maxlength="1000" enterkeyhint="send" autocapitalize="sentences" aria-label="Message">
+      <button type="submit" class="send" id="send-btn" aria-label="Send message">
+        <svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Settings -->
+  <dialog class="sheet" id="settings-dialog" aria-labelledby="settings-title">
+    <div class="sheet-head">
+      <h2 id="settings-title">Settings</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close settings"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      <h3 class="group">Voice replies</h3>
+      <label class="field row">
+        <span>Speak replies aloud</span>
+        <input type="checkbox" class="switch" id="set-speak">
+      </label>
+      <label class="field">
+        <span>Voice</span>
+        <select id="set-voice"></select>
+      </label>
+      <label class="field">
+        <span>Speed <output id="out-rate">1.0</output></span>
+        <input type="range" id="set-rate" min="0.6" max="1.5" step="0.05">
+      </label>
+      <label class="field">
+        <span>Pitch <output id="out-pitch">1.0</output></span>
+        <input type="range" id="set-pitch" min="0.6" max="1.6" step="0.05">
+      </label>
+      <label class="field">
+        <span>Volume <output id="out-volume">100%</output></span>
+        <input type="range" id="set-volume" min="0" max="1" step="0.05">
+      </label>
+      <button type="button" class="btn" id="btn-test-voice">Test voice</button>
+
+      <h3 class="group">Voice input</h3>
+      <label class="field">
+        <span>Recognition language</span>
+        <select id="set-lang">
+          <option value="en-US">English (US)</option>
+          <option value="en-GB">English (UK)</option>
+          <option value="en-IN">English (India)</option>
+          <option value="en-AU">English (Australia)</option>
+          <option value="hi-IN">Hindi</option>
+          <option value="es-ES">Spanish</option>
+          <option value="fr-FR">French</option>
+          <option value="de-DE">German</option>
+          <option value="pt-BR">Portuguese (Brazil)</option>
+          <option value="ja-JP">Japanese</option>
+        </select>
+      </label>
+      <label class="field row">
+        <span>Send automatically after speaking</span>
+        <input type="checkbox" class="switch" id="set-autosend">
+      </label>
+      <p class="hint">The microphone is only requested when you press the mic button. Chrome processes speech on Google servers, so voice input needs an internet connection.</p>
+
+      <h3 class="group">AI backend</h3>
+      <label class="field">
+        <span>Assistant service URL (optional)</span>
+        <input type="url" id="set-endpoint" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://your-server.example/api/chat">
+      </label>
+      <p class="hint is-error" id="endpoint-msg" hidden></p>
+      <p class="hint">Leave empty to use built-in commands only. Never enter API keys here — keys belong on your server. See the README for the request format.</p>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn danger" id="btn-reset-settings">Reset settings</button>
+        <button type="button" class="btn primary" data-close>Done</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Anime picker -->
+  <dialog class="sheet" id="anime-dialog" aria-labelledby="anime-title">
+    <div class="sheet-head">
+      <h2 id="anime-title">Anime picker</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close anime picker"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      <p class="hint">Pick a genre, then ask for three recommendations or a single random title.</p>
+      <div class="genre-chips" id="genre-chips" role="group" aria-label="Genre"></div>
+      <div class="sheet-actions left">
+        <button type="button" class="btn primary" id="btn-anime-recommend">Recommend 3</button>
+        <button type="button" class="btn" id="btn-anime-random"><svg class="ic" aria-hidden="true"><use href="#i-dice"/></svg> Random pick</button>
+      </div>
+      <div class="anime-results" id="anime-results" aria-live="polite"></div>
+    </div>
+  </dialog>
+
+  <!-- Offline screen -->
+  <div class="offline" id="offline-screen" role="alertdialog" aria-labelledby="offline-title" aria-describedby="offline-desc" hidden>
+    <div class="offline-card">
+      <div class="offline-mark" aria-hidden="true"></div>
+      <h2 id="offline-title">Signal lost</h2>
+      <p id="offline-desc">You are offline. Built-in commands, the clock, your history and the anime picker still work. Voice input and any connected AI backend need an internet connection.</p>
+      <div class="sheet-actions">
+        <button type="button" class="btn" id="btn-offline-retry">Retry connection</button>
+        <button type="button" class="btn primary" id="btn-offline-continue">Continue offline</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <noscript>
+    <div class="noscript">JARVIS needs JavaScript to run. Please enable it in your browser settings.</div>
+  </noscript>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
